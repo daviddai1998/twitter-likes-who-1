@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+    <title>TWEEET</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom fonts for this template -->
+    <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Kaushan+Script' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700' rel='stylesheet' type='text/css'>
+
+    <!-- Custom styles for this template -->
+    <link href="css/agency.css" rel="stylesheet">
+
+    <!-- For the text overlay -->
+    <link href="css/text_overlay.css" rel="stylesheet">
+
+  </head>
+
+  <body id="page-top">
+  <div id="score-keeping">
+    <!--<p class="post-content">Score: High S</p>-->
+  </div>
+  <div id="background-video">
+
+    <!-- Header -->
+    <header class="masthead" id="masthead">
+      <div class="container">
+        <div class="intro-text">
+          <div class="intro-lead-in">What is more or less?</div>
+          <a class="btn btn-primary btn-xl text-uppercase js-scroll-trigger" onclick="startGame()">Play</a>
+        </div>
+      <video autoplay muted loop id="background">
+        <source src="trump_tweets.mp4" type="video/mp4">
+      </video>
+      </div>
+    </header>
+  </div>
+
+  
+
+    <!-- Bootstrap core JavaScript -->
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Plugin JavaScript -->
+    <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Contact form JavaScript -->
+    <script src="js/jqBootstrapValidation.js"></script>
+    <script src="js/contact_me.js"></script>
+
+    <!-- Custom scripts for this template -->
+    <script src="js/agency.min.js"></script>
+
+    <script src="js/parsr.js"></script>
+
+    <script src="js/animate_number/jquery.animateNumber.js"></script>
+    <script type="text/javascript">
+    var left_slide = []; //name then followers
+    var right_slide = []; //name then followers
+    high_score = 0;
+    current_score = 0;
+
+    function dummyGenerator() {
+      var choices = ["wallach", "dan", "goldman", "luay", "burke", "alex"];
+      var followers = [10,1234, 1294, 10000, 100003];
+      var rand_num = Math.floor(Math.random() * 5);
+      var rand_num2 = Math.floor(Math.random() * 5);
+      return [choices[rand_num], followers[rand_num2]]
+    }
+
+    function startGame() {
+      try {
+        var high_score = localStorage.getItem("twitter_high_score");
+      } catch (e) {
+        var high_score = 0;
+      }
+
+      if (high_score == null) {
+        high_score = 0;
+      }
+
+      current_score = 0;
+
+      refreshScores();
+
+      //pick a left slide and a right slide
+      left_slide = [];
+      right_slide = [];
+
+      arr = start();
+
+      $.ajax({
+        url: String(arr[0]),
+        dataType : 'json',
+        async: false,
+        crossDomain : true
+      }).done(function(data) {
+        left_slide.push(data[0]['name']);
+        left_slide.push(data[0]['followers_count']); //name
+      });
+
+      $.ajax({
+        url: String(arr[1]),
+        async: false,
+        dataType : 'json',
+        crossDomain : true
+      }).done(function(data) {
+        right_slide.push(data[0]['name']);
+        right_slide.push(data[0]['followers_count']); //name
+      });
+      //display left slide and right slide, with buttons and target_left and target_right
+      //which will then trigger checkCorrect
+      updateSlides();
+      
+
+      //buttons are left and right
+    }
+
+    function updateSlides() {
+      contents = document.getElementById("background-video");
+      contents.innerHTML =     '<section id="services">\
+      <div class="container">\
+        <div class="row">\
+          <div class="col-lg-12 text-center">\
+            <h2 class="section-heading text-uppercase">Who has more followers?</h2>\
+            <h3 class="section-subheading text-muted"></h3>\
+          </div>\
+        </div>\
+        <div class="row text-center">\
+          <div class="col-md-6 bg" style="background-image:url('+arr[2]+');">\
+            <h1 class="service-heading" style="color:rgb(255,255,255); text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;">' + left_slide[0] + '</h1>\
+            <h2 class="service-heading" style="color:rgb(255,255,255); text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;">'+ num_to_comma(String(left_slide[1])) +'</h2>\
+          </div>\
+          <div class="col-md-6 bg" style="background-image:url('+arr[3]+'); ">\
+            <h1 class="service-heading" style="color:rgb(255,255,255); text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;">' + right_slide[0] + '</h1>\
+            <h2 class="text-muted"><button class="btn-danger btn btn-xl" id="more" onclick="checkCorrect(\'right\')">More</button> <button class="btn-success btn btn-xl" id="less" onclick="checkCorrect(\'left\')">Less</button></p><p><span id="target_right" style="color:rgb(255,255,255); text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;"></span></h2>\
+            <br><br><br><br><br><br><br><br><br>\
+          </div>\
+        </div>\
+      </div>\
+    </section>';
+    }
+
+    function checkCorrect(left_or_right) {
+
+      $("#more").attr("disabled", true);
+      $("#less").attr("disabled", true);
+
+      var decimal_places = 0;
+      var tweets_left = left_slide[1];
+      var tweets_right = right_slide[1];
+
+
+      $('#target_right').animateNumber(
+        {
+          number: tweets_right,
+          color: 'black',
+          'font-size': '30px',
+
+          numberStep: function(now, tween) {
+            var floored_number = Math.floor(now),
+                target = $(tween.elem);
+            if (decimal_places > 0) {
+              floored_number = floored_number.toFixed(decimal_places);
+            }
+            floored_number = String(floored_number);
+
+            new_number = num_to_comma(floored_number);
+
+            target.text(new_number);
+          }
+        },
+        1000
+        )
+
+      $('#target_right').promise().done(function() {      if ((left_or_right == "left" && tweets_left >= tweets_right) || (left_or_right == "right" && tweets_right >= tweets_left)) {
+        setTimeout(nextSlide, 2000);
+        correct();
+      } else {
+        setTimeout(endGame, 2000);
+      }} );
+
+
+    }
+
+    function num_to_comma(floored_number) {
+      var new_number = "";
+      for (var i = 1; i <= (floored_number).length; i++) {
+        new_number =  floored_number[floored_number.length-i] + new_number;
+        if (i % 3 == 0 && i != floored_number.length) {
+          new_number = "," + new_number;
+        }
+      } 
+      return new_number;
+    }
+
+    function nextSlide() {
+      left_slide[0] = right_slide[0];
+      left_slide[1] = right_slide[1];
+      //then sets right_slide to the next thing
+      arr2 = start();
+
+      $.ajax({
+        url: String(arr2[0]),
+        async: false,
+        dataType : 'json',
+        crossDomain : true
+      }).done(function(data) {
+        right_slide[0] = data[0]['name'];
+        right_slide[1] = (data[0]['followers_count']); //name
+      });
+
+      arr[0] = arr[1]
+      arr[2] = arr[3]
+      arr[1] = arr2[0]
+      arr[3] = arr2[2]
+
+
+
+      updateSlides();
+    }
+
+    function refreshScores() {
+      if (current_score > high_score) {
+        localStorage.setItem("twitter_high_score", current_score);   
+        high_score = current_score;     
+      }   
+      contents = document.getElementById("score-keeping");
+      contents.innerHTML = '<p class="post-content">Score: ' + current_score + ' High Score: ' + high_score + ' </p>';  
+ 
+    }
+
+    function correct() {
+      current_score++;
+      refreshScores();
+    }
+
+
+    function endGame() {
+      contents = document.getElementById("background-video");
+      contents.innerHTML = '<header class="masthead"><section id="services"><div class="container"><div class="row"><div class="col-lg-12 text-center">\
+          <h2 class="section-heading text-uppercase">Start again? Score: ' + current_score + ' High Score: ' + high_score + '</h2>\
+          <a class="btn btn-primary btn-xl text-uppercase js-scroll-trigger" onclick="startGame()">Play</a>\
+        </div>\
+        <div class="row><div class="col-lg-4></div><div class="text-center col-lg-12">\
+          <div class="service-heading"> \
+        <video autoplay muted loop id="background">\
+          <source style="display:block; margin: 0 auto;" src="bird_caught.mp4" type="video/mp4">\
+        </video></div></div></div></div></div></section></header>';
+    }
+
+    </script>
+  </body>
+
+</html>

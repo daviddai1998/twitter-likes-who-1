@@ -1,0 +1,23 @@
+.post-content {
+
+    top:0;
+    right:0;
+    position: absolute;
+}
+
+.bg { 
+    /* The image used */
+    background-image: url("http://dpd.cs.princeton.edu/Sabbat/07.18-25.01SiliValleySeattle//P7230115.jpg");
+
+    /* Half height */
+    height: auto; 
+    width: 100%;
+
+    display:block;
+
+
+    /* Center and scale the image nicely */
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
